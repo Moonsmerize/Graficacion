@@ -1,3 +1,4 @@
+
 # Graficación
 ## Ejercicio 1. Carpeta pixelArt
 Este folder contiene el primer ejercicio. Es una matriz llena de 0's y 255's creando la siguiente figura: 
