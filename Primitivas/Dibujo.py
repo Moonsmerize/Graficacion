@@ -39,8 +39,12 @@ cv.fillPoly(img, [pts4], (50, 46, 69))
 cv.rectangle(img, (330,290), (450,400), (59,42,108), -1)
 # Puerta
 cv.rectangle(img, (360,330), (420,400), (0,0,0), -1)
-# Montaña media
-
+# nube
+cv.circle(img, (60, 60), 40, (255,255,255), -1)
+cv.circle(img, (100, 80), 40, (255,255,255), -1)
+cv.circle(img, (100, 40), 40, (255,255,255), -1)
+cv.circle(img, (150, 60), 40, (255,255,255), -1)
+#q
 
 cv.imshow('img', img)
 cv.waitKey()

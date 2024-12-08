@@ -31,8 +31,22 @@ Las ecuaciones paramétricas son una herramienta muy útil para describir curvas
 
 ## Ejercicio 5. Dibujo con primitivas
 
+Para este ejercicio hay que crear un dibujo simple usando simplemente primitivas de dibujo
+en este caso lo que yo cree fue un paisaje de una casa, detras unas montañas, el sol y una 
+nube.  
+
+![alt text](/Imagenes/dibujoPrimitivas.png)
+
 ## Ejercicio 6. Ecuaciones paramétricas
-Cambiar el valor a "k" diez veces y observar el resultado.  
+
+Para este ejercicio se pide cambiar el valor a "k" diez veces y observar el resultado.  
+```python
+# Parámetros de la curva de Limacon
+a, b = 75, 50  # Reducir los valores de a y b para que la curva se ajuste mejor
+k = 10 # Constante de multiplicación del ángulo
+theta_increment = 0.05  # Incremento del ángulo
+max_theta = 2 * np.pi  # Un ciclo completo
+```
 Con k = 1, el resultado es:  
 ![alt text](/Imagenes/k=1.png)  
 Con k = 2, el resultado es:  
