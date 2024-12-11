@@ -8,6 +8,16 @@ La imagen en matriz queda de la siguente manera:
 ![alt text](Imagenes/CorajeMatriz.png)
 >Nota: cambie los 0 por "wh" y los 255 por "bl" momentaniamente para que la matriz quedara bien alineada y se pueda apreciar mejor el pixel art.  
 ## Ejercicio 2. Operadores puntuales
+En este ejercicio se pide Generar al menos cinco operadores puntuales utilizando la imagen generada o una imagen previamente cargada. Los operadores puntuales aplicados en este caso son
+1. Escala de grises: Convertir la imagen a escala de grises.
+2. Umbralización: Aplicar un umbral para binarizar la imagen.
+3. Inversión de colores: Invertir los colores de la imagen.
+4. Aumento de brillo: Aumentar el brillo de la imagen.
+5. Aumento de contraste: Aumentar el contraste de la imagen.  
+Siendo la imagen original la siguiente:  
+![imagenOriginal.png](Imagenes/imagenOriginal.png)  
+Al aplicar las transfomaciones geometricas antes mencionadas tenemos como resultado:
+![OperadoresPuntuales.png](Imagenes/OperadoresPuntuales.png)
  
 ## Ejercicio 3. Carpeta de Tranformaciones geometricas
 esta carpeta contiene el ejercicio 3 de trasformaciones  

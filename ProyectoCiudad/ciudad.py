@@ -1,6 +1,7 @@
 import glfw
 from OpenGL.GL import *
 from OpenGL.GLU import gluPerspective, gluLookAt
+from OpenGL.GLU import gluNewQuadric, gluCylinder, gluSphere
 import cv2
 import numpy as np
 import math
@@ -273,6 +274,137 @@ def draw_street():
         draw_rectangle(-20, 3.8, 2, 0.3, (0.9, 0.9, 0.9))
         glPopMatrix()
 
+def draw_cube1(x, y, z, width, height, depth, color):
+    """Dibuja un cubo en una posición específica con dimensiones y color dados"""
+    glPushMatrix()
+    glTranslatef(x, y, z)
+    glScalef(width, height, depth)
+    glColor3f(*color)
+    glBegin(GL_QUADS)
+
+    # Frente
+    glVertex3f(-0.5, -0.5, 0.5)
+    glVertex3f(0.5, -0.5, 0.5)
+    glVertex3f(0.5, 0.5, 0.5)
+    glVertex3f(-0.5, 0.5, 0.5)
+
+    # Atrás
+    glVertex3f(-0.5, -0.5, -0.5)
+    glVertex3f(0.5, -0.5, -0.5)
+    glVertex3f(0.5, 0.5, -0.5)
+    glVertex3f(-0.5, 0.5, -0.5)
+
+    # Izquierda
+    glVertex3f(-0.5, -0.5, -0.5)
+    glVertex3f(-0.5, -0.5, 0.5)
+    glVertex3f(-0.5, 0.5, 0.5)
+    glVertex3f(-0.5, 0.5, -0.5)
+
+    # Derecha
+    glVertex3f(0.5, -0.5, -0.5)
+    glVertex3f(0.5, -0.5, 0.5)
+    glVertex3f(0.5, 0.5, 0.5)
+    glVertex3f(0.5, 0.5, -0.5)
+
+    # Arriba
+    glVertex3f(-0.5, 0.5, -0.5)
+    glVertex3f(0.5, 0.5, -0.5)
+    glVertex3f(0.5, 0.5, 0.5)
+    glVertex3f(-0.5, 0.5, 0.5)
+
+    # Abajo
+    glVertex3f(-0.5, -0.5, -0.5)
+    glVertex3f(0.5, -0.5, -0.5)
+    glVertex3f(0.5, -0.5, 0.5)
+    glVertex3f(-0.5, -0.5, 0.5)
+
+    glEnd()
+    glPopMatrix()
+
+def init():
+    glClearColor(0.5, 0.8, 1.0, 1.0)  # Fondo de color azul
+    glEnable(GL_DEPTH_TEST)            # Activar prueba de profundidad
+    glEnable(GL_LIGHTING)              # Activar iluminación
+    glEnable(GL_LIGHT0)                # Activar la luz 0
+
+    # Configuración de la perspectiva
+    glMatrixMode(GL_PROJECTION)
+    gluPerspective(45, 1.0, 0.1, 50.0)
+    glMatrixMode(GL_MODELVIEW)
+
+    # Configuración de la luz
+    light_pos = [1.0, 1.0, 1.0, 1.0]  # Posición de la luz
+    light_color = [1.0, 1.0, 1.0, 1.0]  # Color de la luz blanca
+    ambient_light = [0.2, 0.2, 0.2, 1.0]  # Luz ambiental
+
+    glLightfv(GL_LIGHT0, GL_POSITION, light_pos)
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color)
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light)
+
+def draw_arbusto():
+    # Cambiar el color de las hojas a verde
+    material_diffuse_hojas = [0.0, 0.4, 0.0, 1.0]  # Color verde para las hojas
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse_hojas)
+
+    # Dibujar las esferas (hojas del arbusto) en verde
+
+    glPushMatrix()
+    glTranslatef(0.1, 0.9, 1.5)  # Posición de una esfera en la parte trasera
+    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glPopMatrix()
+
+    glPushMatrix()
+    glTranslatef(0.0, 3.0, 0.0)  # Posición de una esfera superior
+    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glPopMatrix()
+
+    glPushMatrix()
+    glTranslatef(2.0, 2.0, 0.0)  # Posición de una esfera lateral
+    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glPopMatrix()
+
+    glPushMatrix()
+    glTranslatef(-2.0, 2.0, 1)  # Posición de otra esfera lateral
+    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glPopMatrix()
+
+    glPushMatrix()
+    glTranslatef(1.5, 0.0, 0.9)  # Posición de una esfera en la parte trasera
+    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glPopMatrix()
+
+    glPushMatrix()
+    glTranslatef(-1.1, 0.0, 1)  # Posición de una esfera en la parte inferior
+    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glPopMatrix()
+
+    # Cambiar el color del tronco a café (marrón)
+    material_diffuse_tronco = [0.6, 0.3, 0.1, 1.0]  # Color marrón/café para el tronco
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse_tronco)
+
+    # Dibujar el tronco del arbusto (cilindro)
+    glPushMatrix()
+    glTranslatef(0.0, -0.8, 0.0)  # Colocar el tronco en la base del arbusto
+    glRotatef(90, 1, 0, 0)  # Rotar el tronco para que quede vertical
+    gluCylinder(gluNewQuadric(), 0.5, 0.5, 4.0, 32, 32)  # Crear el cilindro
+    glPopMatrix()
+
+def draw_bench():
+    """Dibuja una banca 3D"""
+
+
+    # Asiento
+    draw_cube1(0, 0.5, 0, 3, 0.2, 1, (0.3, 0.3, 0.3))
+
+    # Respaldo
+    draw_cube1(0, 1, -0.4, 3, 1, 0.2, (0.4, 0.4, 0.4))
+
+    # Patas
+    draw_cube1(-1.3, 0.25, 0.4, 0.2, 0.5, 0.2, (0.5, 0.3, 0.2))
+    draw_cube1(1.3, 0.25, 0.4, 0.2, 0.5, 0.2, (0.5, 0.3, 0.2))
+    draw_cube1(-1.3, 0.25, -0.4, 0.2, 0.5, 0.2, (0.5, 0.3, 0.2))
+    draw_cube1(1.3, 0.25, -0.4, 0.2, 0.5, 0.2, (0.5, 0.3, 0.2))
+
 def draw_arbol():
     # dibujar un arbol
     glPushMatrix()
@@ -304,6 +436,47 @@ def draw_arbol():
     glTranslatef(1.5, 2, -0.5)
     glRotatef(-math.degrees(80.1), 1, 0, 0)
     draw_sphere(0.6, 32, 32)
+    glPopMatrix()
+
+def draw_farola():
+    # Factor de escala para reducir el tamaño a la mitad
+    escala = 0.5
+
+    # Dibujar el poste de la farola
+    glPushMatrix()
+    glColor3f(0.3, 0.3, 0.3)
+    glRotatef(-90, 1, 0, 0)
+    glTranslate(0,0,0)
+    glScalef(escala, escala, escala)  # Aplicamos la escala
+    gluCylinder(gluNewQuadric(), 0.2, 0.2, 10.0 * escala, 32, 32)
+    glPopMatrix()
+
+    # Dibujar el brazo de la farola
+    glPushMatrix()
+    glColor3f(0.3, 0.3, 0.3)
+    glTranslate(0,-2,0)
+    glTranslatef(0.0, 8.0 * escala, 0.0)
+    glRotatef(90, 0, 1, 0)
+    glScalef(escala, escala, escala)
+    gluCylinder(gluNewQuadric(), 0.2, 0.2, 2.0 * escala, 32, 32)
+    glPopMatrix()
+
+    # Dibujar el foco (lámpara)
+    glPushMatrix()
+    glColor3f(1.0, 1.0, 0.0)
+    glTranslate(-0.5,-2,0)
+    glTranslatef(2.0 * escala, 8.0 * escala, 0.0)
+    glScalef(escala, escala, escala)
+    gluSphere(gluNewQuadric(), 0.5 * escala, 32, 32)
+    glPopMatrix()
+
+    # Dibujar la base de la farola
+    glPushMatrix()
+    glColor3f(0.2, 0.2, 0.2)
+    glTranslatef(0.0, -0.5 * escala, 0.0)
+    glRotatef(-90, 1, 0, 0)
+    glScalef(escala, escala, escala)
+    gluCylinder(gluNewQuadric(), 0.5 * escala, 0.7 * escala, 0.5 * escala, 32, 32)
     glPopMatrix()
 
 def draw_scene():
@@ -370,22 +543,66 @@ def draw_scene():
             glRotatef(-math.degrees(angle), 0, 1, 0)
             draw_pyramid(0.5, 0.5, 0, 2, (0.2, 0.2, 0.2))
             glPopMatrix()
-    for i in range(1):
-        x=-3.6 + i*5
+    for i in range(4):
+        x=-18.6 + i*5
         glPushMatrix()
         glTranslatef(x, 0, 1)
+        draw_arbol()
+        glPopMatrix()
+    for i in range(4):
+        z=7.3
+        x=-18.6 + i*5
+        glPushMatrix()
+        glTranslatef(x, 0, z)
         draw_arbol()
         glPopMatrix()
 
     # dibujar edificios
     glPushMatrix()
     glTranslatef(-0.5, 4.5, -5)
-    draw_rectangular_prism(3,8,5,(0,0,0))
+    draw_rectangular_prism(3,8,5,(0.6, 0.3, 0.1))
+    glPopMatrix()
+    glPushMatrix()
+    glTranslatef(-0.5, 4.5, -12)
+    draw_rectangular_prism(3,12,3,(0.6, 0.3, 0.3))
+    glPopMatrix()
+
+    #dibujar banca
+    glPushMatrix()
+    glRotatef(-90, 0, 1, 0) 
+    glTranslatef(-4, 0, -8)
+    draw_bench()
+    glPopMatrix()
+    # dibujar farolas
+    glPushMatrix()
+    glTranslatef(1.3, 0.01, 1)
+    draw_farola()
+    glPopMatrix()
+    glPushMatrix()
+    glTranslatef(6.8, 0.01, 1)
+    glRotatef(-180, 0, 1, 0)
+    draw_farola()
+    glPopMatrix()
+
+    glPushMatrix()
+    glTranslatef(6.8, 0.01, 7)
+    glRotatef(-180, 0, 1, 0)
+    draw_farola()
+    glPopMatrix()
+    glPushMatrix()
+    glTranslatef(1.3, 0.01, 7)
+    draw_farola()
     glPopMatrix()
     
+    # Dibujar semaforo  
+    glPushMatrix()
+    glTranslatef(0, 2, 0)
+    draw_rectangular_prism(0.1, 0.2, 0.1, (0.1, 0.1, 0.1))
+    glPopMatrix()
     # Dibujar el marcador de la cámara
     draw_camera_marker(camera_x, camera_y, camera_z)
     glfw.swap_buffers(window)
+
 
 def main():
     global window
