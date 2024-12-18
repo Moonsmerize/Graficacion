@@ -1,11 +1,28 @@
 import glfw
 from OpenGL.GL import *
-from OpenGL.GLU import gluPerspective, gluLookAt
 from OpenGL.GLU import gluNewQuadric, gluCylinder, gluSphere
-import cv2
+from OpenGL.GLU import gluPerspective, gluLookAt
+import cv2 
+import cv2 as cv 
 import numpy as np
 import math
 import sys
+
+
+# Parámetros de Lucas-Kanade
+lkparm = dict(winSize=(15, 15), maxLevel=2,
+              criteria=(cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03))
+
+# Actualizar transformaciones de la matriz (por ejemplo, traducción y rotación)
+def update_transformations(p1, p0):
+    delta = (p1 - p0).reshape(-1, 2)  # Garantiza forma (n, 2)
+    mean_delta = np.mean(delta, axis=0)
+
+    # Aquí puedes usar el movimiento promedio para calcular transformaciones
+    # o simplemente visualizar los cambios si es necesario.
+    return mean_delta
+
+
 
 # Variables globales para el control de la cámara
 camera_yaw = 0
@@ -68,7 +85,7 @@ def draw_cube():
     glVertex3f(-1, 0, 1)
     glEnd()
 
-def draw_rectangular_prism(width, height, depth, color=(1, 0, 0)):
+def draw_rectangular_prism(width, height, depth, color):
     """Dibuja un prisma rectangular con dimensiones y color especificados.
 
     Args:
@@ -144,7 +161,8 @@ def draw_sphere(radius, slices, stacks,color=(0, 1, 0)):
             glNormal3f(x * zr0, y * zr0, z0)
             glVertex3f(x * zr0, y * zr0, z0)
             glNormal3f(x * zr1, y * zr1, z1)
-            glVertex3f(x * zr1, y * zr1, z1)
+            glVertex3f(x * zr1,
+                       y * zr1, z1)
         glEnd()
 
 def draw_tronco(radius, height, slices, stacks, color):
@@ -274,7 +292,40 @@ def draw_street():
         draw_rectangle(-20, 3.8, 2, 0.3, (0.9, 0.9, 0.9))
         glPopMatrix()
 
-def draw_cube1(x, y, z, width, height, depth, color):
+def draw_arbol():
+    # dibujar un arbol
+    glPushMatrix()
+    glTranslatef(1.5, 3, 0)
+    glRotatef(-math.degrees(80.1), 1, 0, 0)
+    draw_sphere(0.6, 32, 32)
+    draw_tronco(0.18, 3.0, 32, 32, (0.5, 0.2, 0))
+    glPopMatrix()
+
+    glPushMatrix()
+    glTranslatef(1, 2, 0)
+    glRotatef(-math.degrees(80.1), 1, 0, 0)
+    draw_sphere(0.6, 32, 32)
+    glPopMatrix()
+    
+    glPushMatrix()
+    glTranslatef(2, 2, 0)
+    glRotatef(-math.degrees(80.1), 1, 0, 0)
+    draw_sphere(0.6, 32, 32)
+    glPopMatrix()
+    
+    glPushMatrix()
+    glTranslatef(1.5, 2, 0.5)
+    glRotatef(-math.degrees(80.1), 1, 0, 0)
+    draw_sphere(0.6, 32, 32)
+    glPopMatrix()
+    
+    glPushMatrix()
+    glTranslatef(1.5, 2, -0.5)
+    glRotatef(-math.degrees(80.1), 1, 0, 0)
+    draw_sphere(0.6, 32, 32)
+    glPopMatrix()
+
+def draw_cube_walmart(x, y, z, width, height, depth, color):
     """Dibuja un cubo en una posición específica con dimensiones y color dados"""
     glPushMatrix()
     glTranslatef(x, y, z)
@@ -321,123 +372,289 @@ def draw_cube1(x, y, z, width, height, depth, color):
     glEnd()
     glPopMatrix()
 
-def init():
-    glClearColor(0.5, 0.8, 1.0, 1.0)  # Fondo de color azul
-    glEnable(GL_DEPTH_TEST)            # Activar prueba de profundidad
-    glEnable(GL_LIGHTING)              # Activar iluminación
-    glEnable(GL_LIGHT0)                # Activar la luz 0
+def draw_text_on_cube(x, y, z, text, color):
+    """Dibuja texto básico simulando caracteres como líneas sobre un cubo."""
+    glColor3f(*color)
+    for i, char in enumerate(text):
+        glPushMatrix()
+        glTranslatef(x + i * 0.3, y, z)  # Posicionar cada letra
+        glScalef(0.1, 0.1, 0.1)
+        draw_letter(char)
+        glPopMatrix()
 
-    # Configuración de la perspectiva
-    glMatrixMode(GL_PROJECTION)
-    gluPerspective(45, 1.0, 0.1, 50.0)
-    glMatrixMode(GL_MODELVIEW)
+def draw_letter(char):
+    """Dibuja letras básicas como líneas simuladas (solo para algunas letras)."""
+    glBegin(GL_LINES)
+    if char == 'U':
+        glVertex3f(-0.5, -0.5, 0.0)
+        glVertex3f(-0.5, 0.5, 0.0)
+        glVertex3f(0.5, -0.5, 0.0)
+        glVertex3f(0.5, 0.5, 0.0)
+        glVertex3f(-0.5, -0.5, 0.0)
+        glVertex3f(0.5, -0.5, 0.0)
+    elif char == 'A':
+        glVertex3f(-0.5, -0.5, 0.0)
+        glVertex3f(0.0, 0.5, 0.0)
+        glVertex3f(0.5, -0.5, 0.0)
+        glVertex3f(0.0, 0.5, 0.0)
+        glVertex3f(-0.25, 0.0, 0.0)
+        glVertex3f(0.25, 0.0, 0.0)
+    elif char == 'L':
+        glVertex3f(-0.5, 0.5, 0.0)
+        glVertex3f(-0.5, -0.5, 0.0)
+        glVertex3f(-0.5, -0.5, 0.0)
+        glVertex3f(0.5, -0.5, 0.0)
+    elif char == 'M':
+        glVertex3f(-0.5, -0.5, 0.0)
+        glVertex3f(-0.5, 0.5, 0.0)
+        glVertex3f(0.0, 0.0, 0.0)
+        glVertex3f(-0.5, 0.5, 0.0)
+        glVertex3f(0.0, 0.0, 0.0)
+        glVertex3f(0.5, 0.5, 0.0)
+        glVertex3f(0.5, 0.5, 0.0)
+        glVertex3f(0.5, -0.5, 0.0)
+    elif char == 'R':
+        glVertex3f(-0.5, -0.5, 0.0)
+        glVertex3f(-0.5, 0.5, 0.0)
+        glVertex3f(-0.5, 0.5, 0.0)
+        glVertex3f(0.0, 0.5, 0.0)
+        glVertex3f(0.0, 0.5, 0.0)
+        glVertex3f(0.5, 0.0, 0.0)
+        glVertex3f(-0.5, 0.0, 0.0)
+        glVertex3f(0.0, 0.0, 0.0)
+    elif char == 'T':
+        glVertex3f(-0.5, 0.5, 0.0)
+        glVertex3f(0.5, 0.5, 0.0)
+        glVertex3f(0.0, 0.5, 0.0)
+        glVertex3f(0.0, -0.5, 0.0)
+    glEnd()
 
-    # Configuración de la luz
-    light_pos = [1.0, 1.0, 1.0, 1.0]  # Posición de la luz
-    light_color = [1.0, 1.0, 1.0, 1.0]  # Color de la luz blanca
-    ambient_light = [0.2, 0.2, 0.2, 1.0]  # Luz ambiental
+def draw_supermarket():
+    # Suelo
+    draw_cube_walmart(0, -0.1, 0, 20, 0.1, 20, (0.2, 0.6, 0.2))
 
-    glLightfv(GL_LIGHT0, GL_POSITION, light_pos)
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color)
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light)
+    # Edificio principal
+    draw_cube_walmart(0, 1, 0, 6, 2, 4, (0.8, 0.2, 0.2))
 
-def draw_arbusto():
-    # Cambiar el color de las hojas a verde
-    material_diffuse_hojas = [0.0, 0.4, 0.0, 1.0]  # Color verde para las hojas
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse_hojas)
+    # Ventanas
+    draw_cube_walmart(-2, 1, 2.01, 0.8, 0.8, 0.1, (0.6, 0.8, 1.0))
+    draw_cube_walmart(0, 1, 2.01, 0.8, 0.8, 0.1, (0.6, 0.8, 1.0))
+    draw_cube_walmart(2, 1, 2.01, 0.8, 0.8, 0.1, (0.6, 0.8, 1.0))
 
-    # Dibujar las esferas (hojas del arbusto) en verde
+    # Letrero
+    draw_cube_walmart(0, 2.6, 0, 4, 0.2, 0.2, (0.0, 0.0, 0.5))
+    draw_text_on_cube(-1.5, 2.6, 0.3, "UALMART", (1.0, 1.0, 1.0))
 
+# Función para dibujar el suelo (plano)
+def draw_parking_floor():
     glPushMatrix()
-    glTranslatef(0.1, 0.9, 1.5)  # Posición de una esfera en la parte trasera
-    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glColor3f(0.1, 0.1, 0.1)  # Color gris para el suelo
+    glBegin(GL_QUADS)
+    glVertex3f(-10, -0.1, -10)  # Esquina inferior izquierda
+    glVertex3f(10, -0.1, -10)  # Esquina inferior derecha
+    glVertex3f(10, -0.1, 10)  # Esquina superior derecha
+    glVertex3f(-10, -0.1, 10)  # Esquina superior izquierda
+    glEnd()
     glPopMatrix()
 
+
+# Función para dibujar un espacio de estacionamiento
+def draw_parking_space(x, y, width, depth):
     glPushMatrix()
-    glTranslatef(0.0, 3.0, 0.0)  # Posición de una esfera superior
-    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glTranslatef(x, 0.0, y)  # Posicionar cada espacio de estacionamiento
+    glColor3f(0.8, 0.8, 0.8)  # Color gris claro para los espacios
+    glBegin(GL_QUADS)
+    glVertex3f(-width / 2, 0.0, -depth / 2)
+    glVertex3f(width / 2, 0.0, -depth / 2)
+    glVertex3f(width / 2, 0.0, depth / 2)
+    glVertex3f(-width / 2, 0.0, depth / 2)
+    glEnd()
     glPopMatrix()
 
+
+# Función para dibujar las líneas divisorias del estacionamiento
+def draw_parking_lines():
     glPushMatrix()
-    glTranslatef(2.0, 2.0, 0.0)  # Posición de una esfera lateral
-    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glColor3f(10.0, 5.0, 10.0)  # Color blanco para las líneas divisorias
+
+    # Dibujar líneas divisorias entre los espacios
+    glBegin(GL_LINES)
+
+    # Líneas verticales
+    for x in range(-9, 10, 2):
+        glVertex3f(x, 0.0, -10)
+        glVertex3f(x, 0.0, 10)
+
+    # Líneas horizontales
+    for y in range(-9, 10, 2):
+        glVertex3f(-10, 0.0, y)
+        glVertex3f(10, 0.0, y)
+
+    glEnd()
     glPopMatrix()
 
+def draw_parking():
+    # Dibujar el suelo y el estacionamiento
+    draw_parking_floor()  # Dibujar el suelo
+    draw_parking_lines()  # Dibujar las líneas divisorias
+
+    # Dibujar los espacios de estacionamiento (puedes modificar el número de espacios)
+    for x in range(-8, 10, 4):  # Espacios de estacionamiento en X
+        for y in range(-8, 10, 4):  # Espacios de estacionamiento en Y
+            draw_parking_space(x, y, 2, 4)
+
+def draw_estatua():
+    # Dibuja la base de la estatua
+    glBegin(GL_QUADS)
+    glColor3f(0.5, 0.5, 0.5)  # Color gris
+    glVertex3f(-1, -1, 0)
+    glVertex3f(1, -1, 0)
+    glVertex3f(1, 1, 0)
+    glVertex3f(-1, 1, 0)
+    glEnd()
+
+    # Dibuja el cuerpo de la estatua
+    glBegin(GL_QUADS)
+    glColor3f(0.7, 0.7, 0.7)  # Color gris claro
+    glVertex3f(-0.5, -1, 0)
+    glVertex3f(0.5, -1, 0)
+    glVertex3f(0.5, 2, 0)
+    glVertex3f(-0.5, 2, 0)
+    glEnd()
+
+    # Dibuja la cabeza de la estatua
+    glBegin(GL_QUADS)
+    glColor3f(0.9, 0.9, 0.9)  # Color gris claro
+    glVertex3f(-0.2, 2, 0)
+    glVertex3f(0.2, 2, 0)
+    glVertex3f(0.2, 3, 0)
+    glVertex3f(-0.2, 3, 0)
+    glEnd()
+
+
+def draw_hotdog_cart():
+    # Base del carrito
+    draw_cube_walmart(0, 0.5, 0, 4, 0.5, 2, (0.8, 0.2, 0.2))
+
+    # Ruedas
+    draw_cube_walmart(-1.5, 0.2, 1, 0.5, 0.5, 0.5, (0.2, 0.2, 0.2))
+    draw_cube_walmart(1.5, 0.2, 1, 0.5, 0.5, 0.5, (0.2, 0.2, 0.2))
+    draw_cube_walmart(-1.5, 0.2, -1, 0.5, 0.5, 0.5, (0.2, 0.2, 0.2))
+    draw_cube_walmart(1.5, 0.2, -1, 0.5, 0.5, 0.5, (0.2, 0.2, 0.2))
+
+    # Techado del carrito
+    draw_cube_walmart(0, 1.5, 0, 4.2, 0.2, 2.2, (0.9, 0.9, 0.9))
+
+    # Postes laterales
+    draw_cube_walmart(-1.8, 1, 0.9, 0.1, 1.0, 0.1, (0.8, 0.8, 0.8))
+    draw_cube_walmart(1.8, 1, 0.9, 0.1, 1.0, 0.1, (0.8, 0.8, 0.8))
+    draw_cube_walmart(-1.8, 1, -0.9, 0.1, 1.0, 0.1, (0.8, 0.8, 0.8))
+    draw_cube_walmart(1.8, 1, -0.9, 0.1, 1.0, 0.1, (0.8, 0.8, 0.8))
+
+    # Parrilla del carrito
+    draw_cube_walmart(0, 1.0, 0, 3.8, 0.1, 1.8, (0.5, 0.5, 0.5))
+
+    # Manija trasera del carrito
+    draw_cube_walmart(-2.2, 1.0, 0, 0.2, 0.5, 0.1, (0.3, 0.3, 0.3))
+    draw_cube_walmart(-2.2, 1.25, 0, 0.2, 0.1, 1.2, (0.3, 0.3, 0.3))
+
+    # Hot dogs sobre la parrilla
+    draw_cube_walmart(-0.5, 1.1, 0.5, 0.8, 0.2, 0.2, (0.8, 0.4, 0.1))
+    draw_cube_walmart(0.5, 1.1, 0.5, 0.8, 0.2, 0.2, (0.8, 0.4, 0.1))
+    draw_cube_walmart(0, 1.1, -0.5, 0.8, 0.2, 0.2, (0.8, 0.4, 0.1))
+def draw_semaforo():
+    # dibujar semaforo
     glPushMatrix()
-    glTranslatef(-2.0, 2.0, 1)  # Posición de otra esfera lateral
-    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glTranslatef(0, 3, 0)
+    draw_rectangular_prism(0.5, 2, 0.5, (0, 0, 0))
     glPopMatrix()
-
+    # luz 1
     glPushMatrix()
-    glTranslatef(1.5, 0.0, 0.9)  # Posición de una esfera en la parte trasera
-    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glTranslatef(0.26, 3.8, 0)
+    glRotatef(90, 0, 0, 1)
+    draw_circle(0.18, 0, (0, 1, 0))
     glPopMatrix()
-
+    # luz 2
     glPushMatrix()
-    glTranslatef(-1.1, 0.0, 1)  # Posición de una esfera en la parte inferior
-    gluSphere(gluNewQuadric(), 1.5, 32, 32)
+    glTranslatef(0.26, 3.33, 0)
+    glRotatef(90, 0, 0, 1)
+    draw_circle(0.18, 0, (1, 1, 0))
     glPopMatrix()
-
-    # Cambiar el color del tronco a café (marrón)
-    material_diffuse_tronco = [0.6, 0.3, 0.1, 1.0]  # Color marrón/café para el tronco
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse_tronco)
-
-    # Dibujar el tronco del arbusto (cilindro)
+    # luz 3
     glPushMatrix()
-    glTranslatef(0.0, -0.8, 0.0)  # Colocar el tronco en la base del arbusto
-    glRotatef(90, 1, 0, 0)  # Rotar el tronco para que quede vertical
-    gluCylinder(gluNewQuadric(), 0.5, 0.5, 4.0, 32, 32)  # Crear el cilindro
+    glTranslatef(0.26, 2.8, 0)
+    glRotatef(90, 0, 0, 1)
+    draw_circle(0.18, 0, (1, 0, 0))
     glPopMatrix()
-
-def draw_bench():
-    """Dibuja una banca 3D"""
-
-
-    # Asiento
-    draw_cube1(0, 0.5, 0, 3, 0.2, 1, (0.3, 0.3, 0.3))
-
-    # Respaldo
-    draw_cube1(0, 1, -0.4, 3, 1, 0.2, (0.4, 0.4, 0.4))
-
-    # Patas
-    draw_cube1(-1.3, 0.25, 0.4, 0.2, 0.5, 0.2, (0.5, 0.3, 0.2))
-    draw_cube1(1.3, 0.25, 0.4, 0.2, 0.5, 0.2, (0.5, 0.3, 0.2))
-    draw_cube1(-1.3, 0.25, -0.4, 0.2, 0.5, 0.2, (0.5, 0.3, 0.2))
-    draw_cube1(1.3, 0.25, -0.4, 0.2, 0.5, 0.2, (0.5, 0.3, 0.2))
-
-def draw_arbol():
-    # dibujar un arbol
+    # poste
     glPushMatrix()
-    glTranslatef(1.5, 3, 0)
-    glRotatef(-math.degrees(80.1), 1, 0, 0)
-    draw_sphere(0.6, 32, 32)
-    draw_tronco(0.18, 3.0, 32, 32, (0.5, 0.2, 0))
+    glTranslatef(-0.16, 2, 0)
+    glRotatef(90, 1, 0, 0)
+    draw_tronco(0.15, 2, 10, 10, (0, 0, 0))
     glPopMatrix()
+def draw_carro():
+    # Base del carro (cuerpo principal en amarillo)
+    draw_cube_walmart(0, 0.5, 0, 6, 0.5, 3, (1.0, 1.0, 0.0))  # Color amarillo
 
-    glPushMatrix()
-    glTranslatef(1, 2, 0)
-    glRotatef(-math.degrees(80.1), 1, 0, 0)
-    draw_sphere(0.6, 32, 32)
-    glPopMatrix()
-    
-    glPushMatrix()
-    glTranslatef(2, 2, 0)
-    glRotatef(-math.degrees(80.1), 1, 0, 0)
-    draw_sphere(0.6, 32, 32)
-    glPopMatrix()
-    
-    glPushMatrix()
-    glTranslatef(1.5, 2, 0.5)
-    glRotatef(-math.degrees(80.1), 1, 0, 0)
-    draw_sphere(0.6, 32, 32)
-    glPopMatrix()
-    
-    glPushMatrix()
-    glTranslatef(1.5, 2, -0.5)
-    glRotatef(-math.degrees(80.1), 1, 0, 0)
-    draw_sphere(0.6, 32, 32)
-    glPopMatrix()
+    # Ruedas
+    draw_cube_walmart(-2.5, 0.25, 1.5, 0.5, 0.5, 0.5, (0.1, 0.1, 0.1))  # Frontal izquierda
+    draw_cube_walmart(2.5, 0.25, 1.5, 0.5, 0.5, 0.5, (0.1, 0.1, 0.1))   # Frontal derecha
+    draw_cube_walmart(-2.5, 0.25, -1.5, 0.5, 0.5, 0.5, (0.1, 0.1, 0.1)) # Trasera izquierda
+    draw_cube_walmart(2.5, 0.25, -1.5, 0.5, 0.5, 0.5, (0.1, 0.1, 0.1))  # Trasera derecha
 
+    # Ventanas laterales
+    draw_cube_walmart(0, 1.5, 1.4, 5.5, 0.4, 0.1, (0.5, 0.8, 1.0))  # Lateral derecha
+    draw_cube_walmart(0, 1.5, -1.4, 5.5, 0.4, 0.1, (0.5, 0.8, 1.0)) # Lateral izquierda
+
+    # Luces frontales
+    draw_cube_walmart(-2, 0.7, 1.6, 0.4, 0.4, 0.1, (1, 1, 0))  # Izquierda
+    draw_cube_walmart(2, 0.7, 1.6, 0.4, 0.4, 0.1, (1, 1, 0))   # Derecha
+
+    # Luces traseras
+    draw_cube_walmart(-2, 0.7, -1.6, 0.4, 0.4, 0.1, (1, 0, 0)) # Izquierda
+    draw_cube_walmart(2, 0.7, -1.6, 0.4, 0.4, 0.1, (1, 0, 0))  # Derecha
+
+def draw_stop_sign():
+    # Color rojo para la señal
+    glColor3f(1.0, 0.0, 0.0)  # Rojo
+    glBegin(GL_POLYGON)
+    for i in range(8):
+        angle = math.radians(i * 45)  # 360/8 = 45 grados
+        x = 1.0 * math.cos(angle)
+        y = 1.0 * math.sin(angle)
+        glVertex3f(x, y, 0)  # Vértices del octágono
+    glEnd()
+
+    # Opcional: dibujar un borde blanco alrededor de la señal
+    glColor3f(1.0, 1.0, 1.0)  # Blanco
+    glBegin(GL_LINE_LOOP)
+    for i in range(8):
+        angle = math.radians(i * 45)  # 360/8 = 45 grados
+        x = 1.0 * math.cos(angle)
+        y = 1.0 * math.sin(angle)
+        glVertex3f(x, y, 0.01)  # Vértices del borde
+    glEnd()
+
+def draw_post():
+    # Poste de la señal
+    glColor3f(1, 1, 1)  # Color gris
+    glBegin(GL_QUADS)
+    glVertex3f(-0.05, -1, 0)  # Esquina inferior izquierda
+    glVertex3f(0.05, -1, 0)   # Esquina inferior derecha
+    glVertex3f(0.05, 1, 0)    # Esquina superior derecha
+    glVertex3f(-0.05, 1, 0)   # Esquina superior izquierda
+    glEnd()
+
+def draw_stop():
+    # dibujar senal de stop
+    glPushMatrix()
+    glTranslatef(-3, 5, 0)
+    draw_stop_sign()
+    glPopMatrix()
+    glPushMatrix()
+    glTranslatef(-3, 3, 0)
+    draw_post()
+    glPopMatrix() 
 def draw_farola():
     # Factor de escala para reducir el tamaño a la mitad
     escala = 0.5
@@ -478,7 +695,7 @@ def draw_farola():
     glScalef(escala, escala, escala)
     gluCylinder(gluNewQuadric(), 0.5 * escala, 0.7 * escala, 0.5 * escala, 32, 32)
     glPopMatrix()
-
+       
 def draw_scene():
     """Dibuja toda la escena"""
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -543,35 +760,24 @@ def draw_scene():
             glRotatef(-math.degrees(angle), 0, 1, 0)
             draw_pyramid(0.5, 0.5, 0, 2, (0.2, 0.2, 0.2))
             glPopMatrix()
-    for i in range(4):
-        x=-18.6 + i*5
+    for i in range(1):
+        x=-3.6 + i*5
         glPushMatrix()
         glTranslatef(x, 0, 1)
-        draw_arbol()
-        glPopMatrix()
-    for i in range(4):
-        z=7.3
-        x=-18.6 + i*5
-        glPushMatrix()
-        glTranslatef(x, 0, z)
         draw_arbol()
         glPopMatrix()
 
     # dibujar edificios
     glPushMatrix()
     glTranslatef(-0.5, 4.5, -5)
-    draw_rectangular_prism(3,8,5,(0.6, 0.3, 0.1))
-    glPopMatrix()
-    glPushMatrix()
-    glTranslatef(-0.5, 4.5, -12)
-    draw_rectangular_prism(3,12,3,(0.6, 0.3, 0.3))
+    draw_rectangular_prism(3,8,5,(0,0,0))
     glPopMatrix()
 
-    #dibujar banca
+    # dibujar walmart
     glPushMatrix()
-    glRotatef(-90, 0, 1, 0) 
-    glTranslatef(-4, 0, -8)
-    draw_bench()
+    glTranslatef(9, 0, 13)
+    glRotatef(90, 0, 1, 0)
+    draw_supermarket()
     glPopMatrix()
     # dibujar farolas
     glPushMatrix()
@@ -583,32 +789,110 @@ def draw_scene():
     glRotatef(-180, 0, 1, 0)
     draw_farola()
     glPopMatrix()
-
+    # dibujar stacionamiento
+    glPushMatrix()
+    glTranslatef(-12,1,20)
+    draw_parking()
+    glPopMatrix()
+    # dibujar farolas
+    glPushMatrix()
+    glTranslatef(1.3, 0.01, 7)
+    draw_farola()
+    glPopMatrix()
     glPushMatrix()
     glTranslatef(6.8, 0.01, 7)
     glRotatef(-180, 0, 1, 0)
     draw_farola()
     glPopMatrix()
+    # dibujar stacionamiento
     glPushMatrix()
-    glTranslatef(1.3, 0.01, 7)
-    draw_farola()
+    glTranslatef(-12,1,20)
+    draw_parking()
     glPopMatrix()
-    
-    # Dibujar semaforo  
+
+    # dibujar estatua
     glPushMatrix()
-    glTranslatef(0, 2, 0)
-    draw_rectangular_prism(0.1, 0.2, 0.1, (0.1, 0.1, 0.1))
+    glTranslatef(-8,0.5, 18)
+    draw_estatua()
+    glPopMatrix()
+    # Dibujar carrito hotdogs
+    glPushMatrix()
+    glTranslatef(10,1,-5)
+    draw_hotdog_cart()
+    glPopMatrix()
+    # dibujar semaforo
+    glPushMatrix()
+    glTranslatef(1,0,1.5)
+    draw_semaforo()
+    glPopMatrix()
+    # dibujar carro
+    glPushMatrix()
+    glTranslatef(3, 1, 4)
+    draw_carro()
     glPopMatrix()
     # Dibujar el marcador de la cámara
     draw_camera_marker(camera_x, camera_y, camera_z)
     glfw.swap_buffers(window)
-
+    #dibujar stop
+    glPushMatrix()
+    glTranslatef ( 2, 3, 3)
+    draw_stop()
+    glPopMatrix()
 
 def main():
-    global window
+    
+     # Iniciar la captura de video
+    cap = cv.VideoCapture(0)
+    _, vframe = cap.read()
+    vgris = cv.cvtColor(vframe, cv.COLOR_BGR2GRAY)
+
+    # Matriz inicial de puntos
+    p0 = np.array([(50, 50), (150, 50), (250, 50),
+                   (50, 150), (150, 150), (250, 150),
+                   (50, 250), (150, 250), (250, 250)])
+    p0 = np.float32(p0[:, np.newaxis, :])
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        fgris = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+
+        # Calcular flujo óptico
+        p1, st, err = cv.calcOpticalFlowPyrLK(vgris, fgris, p0, None, **lkparm)
+
+        if p1 is None:
+            vgris = fgris.copy()
+            continue
+        else:
+            bp1 = p1[st == 1]
+            bp0 = p0[st == 1]
+
+            # Dibujar líneas y círculos en la imagen de video
+            for i in range(len(bp1) - 1):
+                a, b = (int(x) for x in bp1[i].ravel())
+                c, d = (int(x) for x in bp1[i + 1].ravel())
+                frame = cv.line(frame, (a, b), (c, d), (0, 255, 0), 2)
+            for i, (nv, vj) in enumerate(zip(bp1, bp0)):
+                a, b = (int(x) for x in nv.ravel())
+                frame = cv.circle(frame, (a, b), 3, (0, 0, 255), -1)
+
+            # Actualizar transformaciones (opcional)
+            _ = update_transformations(bp1, bp0)
+
+        # Mostrar la matriz de puntos en la esquina
+        matrix_text = str(bp1.reshape(-1, 2))
+        y0, dy = 30, 20
+        for i, line in enumerate(matrix_text.splitlines()):
+            y = y0 + i * dy
+            cv.putText(frame, line, (10, y), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+
+        cv.imshow('Video con Flujo Óptico', frame)
+        vgris = fgris.copy()
+        global window
     if not glfw.init():
         sys.exit()
-    window = glfw.create_window(800, 600, "Flujo Óptico con OpenCV", None, None)
+    window = glfw.create_window(800, 600, "Proyecto final", None, None)
     if not window:
         glfw.terminate()
         sys.exit()
@@ -622,6 +906,11 @@ def main():
             handle_optical_flow(frame)
         draw_scene()
         glfw.poll_events()
+
+        if cv.waitKey(1) & 0xFF == 27:  # Salir con la tecla Esc
+            break
+    
+   
     cap.release()
     glfw.terminate()
 
