@@ -6,7 +6,7 @@ import math
 traslacion_x = 0
 traslacion_y = 0
 
-imagen = cv.imread('triangulo.png')
+imagen = cv.imread('gas.png')
 imagen = cv.resize(imagen, (100, 100))
 angulo_rotacion = 0
 umbral_movimiento = 30
@@ -21,7 +21,7 @@ vgris = cv.cvtColor(vframe, cv.COLOR_BGR2GRAY)
 
 # Controles
 p0 = np.array(
-    [(100, 100), (200, 100), (100, 200), (200, 200), (500, 100), (600, 100), (500, 200), (600, 200)])  # Cuatro puntos
+    [(50, 50), (100, 50), (150, 50), (200, 50), (250, 50), (300, 50), (350, 50), (400, 50),(450, 50)])  # Cuatro puntos
 p0 = np.float32(p0[:, np.newaxis, :])
 
 mask = np.zeros_like(vframe)
@@ -34,8 +34,7 @@ while True:
 
     if p1 is None:
         vgris = cv.cvtColor(vframe, cv.COLOR_BGR2GRAY)
-        p0 = np.array([(100, 100), (200, 100), (100, 200), (200, 200), (500, 100), (600, 100), (500, 200),
-                       (600, 200)])  # Reiniciar los puntos
+        p0 = np.array([(50, 50), (100, 50), (150, 50), (200, 50), (250, 50), (300, 50), (350, 50), (400, 50),(450, 50)])  # Reiniciar los puntos
         p0 = np.float32(p0[:, np.newaxis, :])
         mask = np.zeros_like(vframe)
         cv.imshow('ventana', frame)
